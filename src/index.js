@@ -3,18 +3,54 @@ import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 import { Route, Switch } from "react-router-dom";
 import { ConnectedRouter } from "connected-react-router";
-import "./index.css";
 import App from "./App";
 import * as serviceWorker from "./serviceWorker";
 import configureStore, { history } from "./configureStore";
+import Auth from "./auth/Auth";
+import Callback from "./auth/Callback";
+
+// font-awesome builder
+import "./faLibrary";
+
+import "./index.css";
 
 const store = configureStore(/* provide initial state if any */);
+
+const auth = new Auth();
+const handleAuthentication = (nextState, replace) => {
+  if (/access_token|id_token|error/.test(nextState.location.hash)) {
+    auth.handleAuthentication();
+  }
+};
 
 ReactDOM.render(
   <Provider store={store}>
     <ConnectedRouter history={history}>
       <Switch>
-        <Route exact path="/" render={() => <App />} />
+        <Route
+          exact
+          path="/"
+          render={props => <App auth={auth} {...props} />}
+        />
+        <Route
+          path="/login"
+          render={props => {
+            auth.login();
+          }}
+        />
+        <Route
+          path="/logout"
+          render={props => {
+            auth.logout();
+          }}
+        />
+        <Route
+          path="/callback"
+          render={props => {
+            handleAuthentication(props);
+            return <Callback {...props} />;
+          }}
+        />
       </Switch>
     </ConnectedRouter>
   </Provider>,

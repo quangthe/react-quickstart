@@ -3,6 +3,7 @@ import logo from "./logo.svg";
 import "./App.css";
 import { connect } from "react-redux";
 import { simpleAction, simpleAsyncAction } from "./actions/appActions";
+import { Link } from "react-router-dom";
 
 class App extends React.Component {
   componentDidMount() {
@@ -10,21 +11,21 @@ class App extends React.Component {
     this.props.dispatch(simpleAsyncAction("simple ASYNC action"));
   }
   render() {
+    const { isAuthenticated } = this.props.auth;
     return (
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
+          {isAuthenticated() && (
+            <Link className="App-link" to="/logout">
+              Logout
+            </Link>
+          )}
+          {!isAuthenticated() && (
+            <Link className="App-link" to="/login">
+              Login
+            </Link>
+          )}
         </header>
       </div>
     );
