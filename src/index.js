@@ -8,12 +8,11 @@ import * as serviceWorker from "./serviceWorker";
 import configureStore, { history } from "./configureStore";
 import Auth from "./auth/Auth";
 import Callback from "./auth/Callback";
+import {auth0Logout} from "./actions/authActions";
 
 // font-awesome builder
 import "./faLibrary";
-
 import "./index.css";
-import {auth0Logout} from "./actions/authActions";
 
 const store = configureStore(/* provide initial state if any */);
 
@@ -23,6 +22,35 @@ const handleAuthentication = (nextState, replace) => {
     auth.handleAuthentication(store.dispatch);
   }
 };
+
+const authKey = "__auth__";
+
+// trigger when users close a tab or quite browser
+window.addEventListener("beforeunload", ev => {
+  // before tab is close or browser is closed
+  try {
+    const auth = store.getState().auth;
+    if (auth && auth.accessToken) {
+      const serializedState = JSON.stringify(store.getState().auth);
+      localStorage.setItem(authKey, serializedState);
+    }
+  } catch (e) {
+    // ignore write errors
+  }
+
+  // silently quit, there's nothing to show confirm popup
+  return undefined;
+});
+
+if (localStorage.getItem(authKey)) {
+  try {
+    const authResult = JSON.parse(localStorage.getItem(authKey));
+    auth.setSession(authResult, store.dispatch);
+    localStorage.removeItem(authKey);
+  } catch (e) {
+    console.log("Cannot restore auth result");
+  }
+}
 
 ReactDOM.render(
   <Provider store={store}>
@@ -42,8 +70,12 @@ ReactDOM.render(
         <Route
           path="/logout"
           render={props => {
-            auth.logout();
+
+            // FIXME: hacked
+            store.getState().auth = {};
+
             store.dispatch(auth0Logout());
+            auth.logout();
           }}
         />
         <Route
