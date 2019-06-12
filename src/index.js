@@ -13,13 +13,14 @@ import Callback from "./auth/Callback";
 import "./faLibrary";
 
 import "./index.css";
+import {auth0Logout} from "./actions/authActions";
 
 const store = configureStore(/* provide initial state if any */);
 
 const auth = new Auth();
 const handleAuthentication = (nextState, replace) => {
   if (/access_token|id_token|error/.test(nextState.location.hash)) {
-    auth.handleAuthentication();
+    auth.handleAuthentication(store.dispatch);
   }
 };
 
@@ -42,6 +43,7 @@ ReactDOM.render(
           path="/logout"
           render={props => {
             auth.logout();
+            store.dispatch(auth0Logout());
           }}
         />
         <Route

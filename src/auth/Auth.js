@@ -1,5 +1,6 @@
 import auth0 from "auth0-js";
 import { history } from "../configureStore";
+import { auth0Authentication} from "../actions/authActions";
 
 export default class Auth {
   accessToken;
@@ -30,10 +31,11 @@ export default class Auth {
     this.auth0.authorize();
   }
 
-  handleAuthentication() {
+  // FIXME how to dispatch action properly, wisely
+  handleAuthentication(dispatch) {
     this.auth0.parseHash((err, authResult) => {
       if (authResult && authResult.accessToken && authResult.idToken) {
-        this.setSession(authResult);
+        this.setSession(authResult, dispatch);
       } else if (err) {
         history.replace("/");
         console.log(err);
@@ -50,9 +52,12 @@ export default class Auth {
     return this.idToken;
   }
 
-  setSession(authResult) {
+  setSession(authResult, dispatch) {
     // Set isLoggedIn flag in localStorage
     localStorage.setItem("isLoggedIn", "true");
+
+    // store token in redux store
+    dispatch(auth0Authentication(authResult));
 
     // Set the time that the Access Token will expire at
     let expiresAt = authResult.expiresIn * 1000 + new Date().getTime();
@@ -64,10 +69,10 @@ export default class Auth {
     history.replace("/");
   }
 
-  renewSession() {
+  renewSession(dispatch) {
     this.auth0.checkSession({}, (err, authResult) => {
       if (authResult && authResult.accessToken && authResult.idToken) {
-        this.setSession(authResult);
+        this.setSession(authResult, dispatch);
       } else if (err) {
         this.logout();
         console.log(err);
