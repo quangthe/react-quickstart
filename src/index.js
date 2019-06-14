@@ -27,7 +27,7 @@ const handleAuthentication = (nextState, replace) => {
 // multiple-tabs logout
 window.addEventListener("storage", function(event) {
   if (event.key === "__cleanup__" && event.newValue !== null) {
-    auth.logout();
+    auth.localLogout();
   }
 });
 
