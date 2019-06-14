@@ -59,6 +59,8 @@ export default class Auth {
     // Set isLoggedIn flag in localStorage
     localStorage.setItem("isLoggedIn", "true");
 
+    sessionStorage.setItem("__auth__", JSON.stringify(authResult));
+
     // Set the time that the Access Token will expire at
     this.expiresAt = authResult.expiresIn * 1000 + new Date().getTime();
     this.accessToken = authResult.accessToken;

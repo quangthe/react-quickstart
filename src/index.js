@@ -51,12 +51,22 @@ if (localStorage.getItem(authKey)) {
     auth.setSession(authResult);
     localStorage.removeItem(authKey);
   } catch (e) {
-    console.log("Cannot restore auth result");
+    console.log("Cannot restore auth result from localStorage");
   }
 }
 //
 // END HANDLE PAGE REFRESH
 //
+
+// HANDLE PAGE DUPLICATION
+if (sessionStorage.getItem(authKey)) {
+  try {
+    const authResult = JSON.parse(sessionStorage.getItem(authKey));
+    auth.setSession(authResult);
+  } catch (e) {
+    console.log("Cannot restore auth result from sessionStorage");
+  }
+}
 
 ReactDOM.render(
   <Provider store={store}>
