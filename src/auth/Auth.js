@@ -1,8 +1,8 @@
 import auth0 from "auth0-js";
 import { history } from "../configureStore";
-import { auth0Authentication} from "../actions/authActions";
 
 export default class Auth {
+  authResult;
   accessToken;
   idToken;
   expiresAt;
@@ -31,7 +31,6 @@ export default class Auth {
     this.auth0.authorize();
   }
 
-  // FIXME how to dispatch action properly, wisely
   handleAuthentication(dispatch) {
     this.auth0.parseHash((err, authResult) => {
       if (authResult && authResult.accessToken && authResult.idToken) {
@@ -44,6 +43,10 @@ export default class Auth {
     });
   }
 
+  getAuthResult() {
+    return this.authResult;
+  }
+
   getAccessToken() {
     return this.accessToken;
   }
@@ -52,27 +55,24 @@ export default class Auth {
     return this.idToken;
   }
 
-  setSession(authResult, dispatch) {
+  setSession(authResult) {
     // Set isLoggedIn flag in localStorage
     localStorage.setItem("isLoggedIn", "true");
 
-    // store token in redux store
-    dispatch(auth0Authentication(authResult));
-
     // Set the time that the Access Token will expire at
-    let expiresAt = authResult.expiresIn * 1000 + new Date().getTime();
+    this.expiresAt = authResult.expiresIn * 1000 + new Date().getTime();
     this.accessToken = authResult.accessToken;
     this.idToken = authResult.idToken;
-    this.expiresAt = expiresAt;
+    this.authResult = authResult;
 
     // navigate to the home route
     history.replace("/");
   }
 
-  renewSession(dispatch) {
+  renewSession() {
     this.auth0.checkSession({}, (err, authResult) => {
       if (authResult && authResult.accessToken && authResult.idToken) {
-        this.setSession(authResult, dispatch);
+        this.setSession(authResult);
       } else if (err) {
         this.logout();
         console.log(err);
@@ -85,6 +85,7 @@ export default class Auth {
 
   logout() {
     // Remove tokens and expiry time
+    this.authResult = null;
     this.accessToken = null;
     this.idToken = null;
     this.expiresAt = 0;
