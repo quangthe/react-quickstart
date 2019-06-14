@@ -7,17 +7,22 @@
   }
 
   window.addEventListener("storage", function (event) {
-    // Add !== null checking to help to remove it later.
     if (event.key === "getSessionStorage" && event.newValue !== null) {
-      // Some tab asked for the sessionStorage -> send it
-
-      localStorage.setItem("sessionStorage", sessionStorage.getItem("__auth__"));
+      //
+      // there's tab asked for the sessionStorage -> send auth state
+      //
+      if (localStorage.getItem("isLoggedIn") === "true") {
+        localStorage.setItem("sessionStorage", sessionStorage.getItem("__auth__"));
+      }
       localStorage.removeItem("sessionStorage");
       localStorage.removeItem("getSessionStorage");
-      // Add !== null checking to help to remove it later.
     } else if (event.key === "sessionStorage" && event.newValue !== null && !sessionStorage.length) {
-      // sessionStorage is empty -> fill it
-      sessionStorage.setItem("__auth__", event.newValue);
+      //
+      // get auth state from other tabs
+      //
+      if (localStorage.getItem("isLoggedIn") === "true") {
+        sessionStorage.setItem("__auth__", event.newValue);
+      }
     }
   });
 })();

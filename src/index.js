@@ -24,6 +24,13 @@ const handleAuthentication = (nextState, replace) => {
   }
 };
 
+// multiple-tabs logout
+window.addEventListener("storage", function(event) {
+  if (event.key === "__cleanup__" && event.newValue !== null) {
+    auth.logout();
+  }
+});
+
 //
 // HANDLE PAGE REFRESH
 //
@@ -35,6 +42,7 @@ window.addEventListener("beforeunload", ev => {
   try {
     if (auth && auth.getAuthResult()) {
       const serializedState = JSON.stringify(auth.getAuthResult());
+      // (1) - temporarily store auth state
       localStorage.setItem(authKey, serializedState);
     }
   } catch (e) {
@@ -45,10 +53,12 @@ window.addEventListener("beforeunload", ev => {
   return undefined;
 });
 
+// (2) - check auth state
 if (localStorage.getItem(authKey)) {
   try {
     const authResult = JSON.parse(localStorage.getItem(authKey));
     auth.setSession(authResult);
+    // (3) - remove auth state
     localStorage.removeItem(authKey);
   } catch (e) {
     console.log("Cannot restore auth result from localStorage");
@@ -59,8 +69,12 @@ if (localStorage.getItem(authKey)) {
 //
 
 // HANDLE PAGE DUPLICATION
-if (sessionStorage.getItem(authKey)) {
+if (
+  sessionStorage.getItem(authKey) &&
+  localStorage.getItem("isLoggedIn") === "true"
+) {
   try {
+    // try to parse auth state sent by other tabs => see preprocessor.js
     const authResult = JSON.parse(sessionStorage.getItem(authKey));
     auth.setSession(authResult);
   } catch (e) {

@@ -8,13 +8,12 @@ export default class Auth {
   expiresAt;
 
   auth0 = new auth0.WebAuth({
-    domain: "cibot.auth0.com",
-    // from https://manage.auth0.com/dashboard/us/cibot/applications/DOim01167WMQu6BD2eamcHVkmtsRb60H/settings
-    clientID: "DOim01167WMQu6BD2eamcHVkmtsRb60H",
-    redirectUri: "http://localhost:3000/callback",
-    responseType: "token id_token",
-    scope: "openid profile email",
-    audience: "https://demo-api.pcloud.com"
+    domain: process.env.REACT_APP_DOMAIN,
+    clientID: process.env.REACT_APP_CLIENT_ID,
+    redirectUri: process.env.REACT_APP_REDIRECT_URL,
+    responseType: process.env.REACT_APP_RESPONSE_TYPE,
+    scope: process.env.REACT_APP_SCOPE,
+    audience: process.env.REACT_APP_AUDIENCE
   });
 
   constructor() {
@@ -24,6 +23,7 @@ export default class Auth {
     this.isAuthenticated = this.isAuthenticated.bind(this);
     this.getAccessToken = this.getAccessToken.bind(this);
     this.getIdToken = this.getIdToken.bind(this);
+    this.getAuthResult = this.getAuthResult.bind(this);
     this.renewSession = this.renewSession.bind(this);
   }
 
@@ -92,8 +92,10 @@ export default class Auth {
     this.idToken = null;
     this.expiresAt = 0;
 
-    // Remove isLoggedIn flag from localStorage
-    localStorage.removeItem("isLoggedIn");
+    // clear everything in session
+    sessionStorage.clear();
+
+    localStorage.setItem("isLoggedIn", "false");
 
     this.auth0.logout({
       returnTo: window.location.origin
@@ -101,6 +103,10 @@ export default class Auth {
 
     // navigate to the home route
     history.replace("/");
+
+    // logout other tabs
+    localStorage.setItem("__cleanup__", "" + new Date());
+    localStorage.removeItem("__cleanup__");
   }
 
   isAuthenticated() {
